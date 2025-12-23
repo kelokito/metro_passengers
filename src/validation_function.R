@@ -1,101 +1,73 @@
-#################Validation#################################
-validation=function(model){
-  s=frequency(get(model$series))
+################# Validation Function #####################
+validation=function(model, model_name){
+  s=frequency(model$x)
   resid=model$residuals
-  par(mfrow=c(2,2),mar=c(3,3,3,3))
-  #Residuals plot
-  plot(resid,main="Residuals")
+  
+  # a) Save Residual Analysis (4-panel plot)
+  png(paste0("../results/figures/validation_", model_name, "_residuals.png"), width=900, height=800)
+  par(mfrow=c(2,2), mar=c(4,4,3,3))
+  # Residuals plot
+  plot(resid, main=paste("Residuals:", model_name))
   abline(h=0)
-  abline(h=c(-3*sd(resid),3*sd(resid)),lty=3,col=4)
-  #Square Root of absolute values of residuals (Homocedasticity)
-  scatter.smooth(sqrt(abs(resid)),main="Square Root of Absolute residuals",
-                 lpars=list(col=2))
-  
-  #Normal plot of residuals
+  abline(h=c(-3*sd(resid),3*sd(resid)), lty=3, col=4)
+  # Homoscedasticity
+  scatter.smooth(sqrt(abs(resid)), main="Square Root of Absolute residuals", lpars=list(col=2))
+  # Normality
   qqnorm(resid)
-  qqline(resid,col=2,lwd=2)
+  qqline(resid, col=2, lwd=2)
+  hist(resid, breaks=20, freq=FALSE, main="Histogram of Residuals")
+  curve(dnorm(x, mean=mean(resid), sd=sd(resid)), col=2, add=TRUE)
+  dev.off()
   
-  ##Histogram of residuals with normal curve
-  hist(resid,breaks=20,freq=FALSE)
-  curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
-  
-  
-  #ACF & PACF of residuals
+  # b) Save ACF & PACF of residuals
+  png(paste0("../results/figures/validation_", model_name, "_acf_pacf.png"), width=1000, height=500)
   par(mfrow=c(1,2))
-  acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
-  pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
-  par(mfrow=c(1,1))
+  acf(resid, ylim=c(-1,1), lag.max=60, col=c(2, rep(1, s-1)), lwd=1, main="ACF of Residuals")
+  pacf(resid, ylim=c(-1,1), lag.max=60, col=c(rep(1, s-1), 2), lwd=1, main="PACF of Residuals")
+  dev.off()
   
-  #Ljung-Box p-values
-  par(mar=c(2,2,1,1))
-  tsdiag(model,gof.lag=7*s)
+  # c) Save Ljung-Box p-values (tsdiag)
+  png(paste0("../results/figures/validation_", model_name, "_tsdiag.png"), width=800, height=600)
+  tsdiag(model, gof.lag=7*s)
+  dev.off()
+
+  # d) Save Stability plot (Inverse Roots / Unit Circle)
+  png(paste0("../results/figures/validation_", model_name, "_unit_circle.png"), width=600, height=600)
+  plot(model)
+  dev.off()
+
+  # --- Numerical Output (Text only) ---
   cat("\n--------------------------------------------------------------------\n")
   print(model)
   
-  #Stationary and Invertible
-  cat("\nModul of AR Characteristic polynomial Roots: ", 
-      Mod(polyroot(c(1,-model$model$phi))),"\n")
-  cat("\nModul of MA Characteristic polynomial Roots: ",
-      Mod(polyroot(c(1,model$model$theta))),"\n")
+  # Stationary and Invertible checks
+  cat("\nModul of AR Roots: ", Mod(polyroot(c(1, -model$model$phi))), "\n")
+  cat("\nModul of MA Roots: ", Mod(polyroot(c(1, model$model$theta))), "\n")
   
-  suppressMessages(require(forecast,quietly=TRUE,warn.conflicts=FALSE))
-  plot(model)
-  
-  #Model expressed as an MA infinity (psi-weights)
-  psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)
-  names(psis)=paste("psi",1:36)
+  # Psi and Pi weights
+  psis=ARMAtoMA(ar=model$model$phi, ma=model$model$theta, lag.max=36)
   cat("\nPsi-weights (MA(inf))\n")
-  cat("\n--------------------\n")
-  print(psis[1:24])
+  print(psis[1:12])
   
-  #Model expressed as an AR infinity (pi-weights)
-  pis=-ARMAtoMA(ar=-model$model$theta,ma=-model$model$phi,lag.max=36)
-  names(pis)=paste("pi",1:36)
+  pis=-ARMAtoMA(ar=-model$model$theta, ma=-model$model$phi, lag.max=36)
   cat("\nPi-weights (AR(inf))\n")
-  cat("\n--------------------\n")
-  print(pis[1:24])
+  print(pis[1:12])
    
-  cat("\nDescriptive Statistics for the Residuals\n")
-  cat("\n----------------------------------------\n") 
-  
-  suppressMessages(require(fBasics,quietly=TRUE,warn.conflicts=FALSE))
-  ##Anderson-Darling test
+  # Formal Tests
+  suppressMessages(require(fBasics, quietly=TRUE))
+  cat("\nDescriptive Statistics\n") 
   print(basicStats(resid))
   
-  ## Add here complementary tests (use with caution!)
-  ##---------------------------------------------------------
   cat("\nNormality Tests\n")
-  cat("\n--------------------\n")
- 
-  ##Shapiro-Wilks Normality test
   print(shapiro.test(resid))
-
-  suppressMessages(require(nortest,quietly=TRUE,warn.conflicts=FALSE))
-  ##Anderson-Darling test
-  print(ad.test(resid))
   
-  suppressMessages(require(tseries,quietly=TRUE,warn.conflicts=FALSE))
-  ##Jarque-Bera test
-  print(jarque.bera.test(resid))
+  suppressMessages(require(lmtest, quietly=TRUE))
+  cat("\nHomoscedasticity (Breusch-Pagan)\n")
+  obs=model$x
+  print(bptest(resid ~ I(obs-resid)))
   
-  cat("\nHomoscedasticity Test\n")
-  cat("\n--------------------\n")
-  suppressMessages(require(lmtest,quietly=TRUE,warn.conflicts=FALSE))
-  ##Breusch-Pagan test
-  obs=get(model$series)
-  print(bptest(resid~I(obs-resid)))
-  
-  cat("\nIndependence Tests\n")
-  cat("\n--------------------\n")
-  
-  ##Durbin-Watson test
-  print(dwtest(resid~I(1:length(resid))))
-  
-  ##Ljung-Box test
-  cat("\nLjung-Box test\n")
-  print(t(apply(matrix(c(1:4,(1:4)*s)),1,function(el) {
-    te=Box.test(resid,type="Ljung-Box",lag=el)
-    c(lag=(te$parameter),statistic=te$statistic[[1]],p.value=te$p.value)})))
-  
+  cat("\nIndependence (Ljung-Box)\n")
+  print(t(apply(matrix(c(1:4, (1:4)*s)), 1, function(el) {
+    te=Box.test(resid, type="Ljung-Box", lag=el)
+    c(lag=(te$parameter), statistic=te$statistic[[1]], p.value=te$p.value)})))
 }
-################# Fi Validation #################################
