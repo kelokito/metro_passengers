@@ -1,0 +1,14 @@
+=== Stationarity Tests: FINAL Series ===
+
+	Augmented Dickey-Fuller Test
+
+data:  na.omit(serie_log_d12_d1)
+Dickey-Fuller = -7.1179, Lag order = 6, p-value = 0.01
+alternative hypothesis: stationary
+
+
+	KPSS Test for Level Stationarity
+
+data:  na.omit(serie_log_d12_d1)
+KPSS Level = 0.035954, Truncation lag parameter = 5, p-value = 0.1
+
