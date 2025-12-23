@@ -105,11 +105,6 @@ print(adf_log)
 print(kpss_log)
 sink()
 
-# Decomposition of log series
-png("../results/figures/decomposition_log.png", width = 900, height = 650)
-plot(decompose(serie_log), main = "Classical Decomposition of Log Series")
-dev.off()
-
 # Monthplot
 png("../results/figures/monthplot_log.png", width = 900, height = 450)
 monthplot(serie_log, main="Monthly Pattern (Log Series)")
@@ -166,10 +161,10 @@ sink()
 # 7. ACF & PACF analysis
 #--------------------------------------------------
 
-png("../results/figures/acf_pacf.png", width=1200, height=600)
+png("../results/figures/acf_pacf.png", width=800, height=400)
 par(mfrow=c(1,2))
-acf(na.omit(serie_log_d12_d1), main="ACF (Stationary Series)")
-pacf(na.omit(serie_log_d12_d1), main="PACF (Stationary Series)")
+acf(na.omit(serie_log_d12_d1), main="ACF (Stationary Series)",col=c(rep(1,11),2))
+pacf(na.omit(serie_log_d12_d1), main="PACF (Stationary Series)", col=c(rep(1,11),2))
 dev.off()
 
 # Interpretation guidelines:

@@ -1,0 +1,15 @@
+=== ESTIMATION: Model 2 - SARIMA(0,1,1)x(0,1,1)12 ===
+Series: serie_log 
+ARIMA(0,1,1)(0,1,1)[12] 
+
+Coefficients:
+          ma1     sma1
+      -0.6686  -0.6215
+s.e.   0.0458   0.0469
+
+sigma^2 = 0.002169:  log likelihood = 451.24
+AIC=-896.48   AICc=-896.39   BIC=-885.63
+
+Training set error measures:
+                      ME       RMSE        MAE        MPE      MAPE      MASE       ACF1
+Training set 0.002496082 0.04534193 0.03411422 0.02515261 0.3334521 0.7001872 -0.0524848

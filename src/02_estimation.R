@@ -1,36 +1,57 @@
-# Typical reasonable candidates for this type of data:
-model1 <- Arima(serie_log,
-                order = c(1,d,1),
-                seasonal = c(0,D,1))
+# 02_estimation.R
+library(forecast)
 
-model2 <- Arima(serie_log,
-                order = c(2,d,1),
-                seasonal = c(0,D,1))
+#--------------------------------------------------
+# 1. Load data and previous transformations
+#--------------------------------------------------
+# Ensure the raw data is loaded and log-transformed as per 01_identification
+serie <- window(
+  ts(read.table("../data/metro.dat"),
+     start = 1996,
+     frequency = 12)
+)
+serie_log <- log(serie)
 
-model3 <- Arima(serie_log,
-                order = c(1,d,2),
-                seasonal = c(1,D,1))
+#--------------------------------------------------
+# 2. Estimate Model 1: SARIMA(2,1,0) x (0,1,1)12
+#--------------------------------------------------
+# p=2, d=1, q=0 | P=0, D=1, Q=1
+model1 <- Arima(serie_log, 
+                order = c(2, 1, 0), 
+                seasonal = list(order = c(0, 1, 1), period = 12),
+                method = "ML")
 
-sink("../results/models/sarima_candidates.txt")
-cat("=== SARIMA Candidate Models ===\n")
-cat("\nModel 1: SARIMA(1,",d,",1)(0,",D,",1)[12]\n")
-print(model1)
-
-cat("\nModel 2: SARIMA(2,",d,",1)(0,",D,",1)[12]\n")
-print(model2)
-
-cat("\nModel 3: SARIMA(1,",d,",2)(1,",D,",1)[12]\n")
-print(model3)
+sink("../results/models/model1_summary.txt")
+cat("=== ESTIMATION: Model 1 - SARIMA(2,1,0)x(0,1,1)12 ===\n")
+print(summary(model1))
 sink()
 
 #--------------------------------------------------
-# 9. Save for estimation stage
+# 3. Estimate Model 2: SARIMA(0,1,1) x (0,1,1)12
 #--------------------------------------------------
+# p=0, d=1, q=1 | P=0, D=1, Q=1
+model2 <- Arima(serie_log, 
+                order = c(0, 1, 1), 
+                seasonal = list(order = c(0, 1, 1), period = 12),
+                method = "ML")
 
-saveRDS(list(
-  serie_raw = serie,
-  serie_log = serie_log,
-  serie_stationary = serie_diff_seas,
-  d = d,
-  D = D
-), file="../results/models/preprocessed_data.rds")
+sink("../results/models/model2_summary.txt")
+cat("=== ESTIMATION: Model 2 - SARIMA(0,1,1)x(0,1,1)12 ===\n")
+print(summary(model2))
+sink()
+
+#--------------------------------------------------
+# 4. Preliminary Comparison (AIC/BIC)
+#--------------------------------------------------
+sink("../results/models/estimation_comparison.txt")
+cat("=== MODEL COMPARISON ===\n\n")
+cat("Model 1 (2,1,0)x(0,1,1)12 AIC:", model1$aic, "\n")
+cat("Model 1 (2,1,0)x(0,1,1)12 BIC:", model1$bic, "\n\n")
+cat("Model 2 (0,1,1)x(0,1,1)12 AIC:", model2$aic, "\n")
+cat("Model 2 (0,1,1)x(0,1,1)12 BIC:", model2$bic, "\n")
+sink()
+
+# Save model objects for use in 03_validation.R
+save(model1, model2, file = "../results/models/estimated_models.RData")
+
+cat("Estimation complete. Results saved in ../results/models/\n")
