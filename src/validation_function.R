@@ -1,4 +1,3 @@
-################# Validation Function #####################
 validation=function(model, model_name){
   s=frequency(model$x)
   resid=model$residuals
@@ -40,16 +39,22 @@ validation=function(model, model_name){
   cat("\n--------------------------------------------------------------------\n")
   print(model)
   
-  # Stationary and Invertible checks
-  cat("\nModul of AR Roots: ", Mod(polyroot(c(1, -model$model$phi))), "\n")
-  cat("\nModul of MA Roots: ", Mod(polyroot(c(1, model$model$theta))), "\n")
+  # 1. CAUSALITY AND INVERTIBILITY CHECK
+  # Notes state roots of Phi(B) and Theta(B) must be > 1 in modulus
+  cat("\n--- Causality & Invertibility (Roots Modulus) ---\n")
+  if (length(model$model$phi) > 0) {
+    cat("Modul of AR Roots: ", Mod(polyroot(c(1, -model$model$phi))), "\n")
+  }
+  if (length(model$model$theta) > 0) {
+    cat("Modul of MA Roots: ", Mod(polyroot(c(1, model$model$theta))), "\n")
+  }
   
-  # Psi and Pi weights
-  psis=ARMAtoMA(ar=model$model$phi, ma=model$model$theta, lag.max=36)
-  cat("\nPsi-weights (MA(inf))\n")
-  print(psis[1:12])
-  
-  pis=-ARMAtoMA(ar=-model$model$theta, ma=-model$model$phi, lag.max=36)
+  # 2. Psi and phi weights
+  psis = ARMAtoMA(ar=model$model$phi, ma=model$model$theta, lag.max=12)
+  cat("\nPsi-weights (MA-infinity representation):\n")
+  print(round(psis, 4))
+
+  pis=-ARMAtoMA(ar=-model$model$theta, ma=-model$model$phi, lag.max=12)
   cat("\nPi-weights (AR(inf))\n")
   print(pis[1:12])
    
@@ -67,7 +72,10 @@ validation=function(model, model_name){
   print(bptest(resid ~ I(obs-resid)))
   
   cat("\nIndependence (Ljung-Box)\n")
-  print(t(apply(matrix(c(1:4, (1:4)*s)), 1, function(el) {
-    te=Box.test(resid, type="Ljung-Box", lag=el)
-    c(lag=(te$parameter), statistic=te$statistic[[1]], p.value=te$p.value)})))
+  lags_to_test = unique(c(1, 2, 3, s, 2*s))
+  results = t(apply(matrix(lags_to_test), 1, function(el) {
+  te = Box.test(resid, type="Ljung-Box", lag=el)
+  c(lag=el, statistic=te$statistic[[1]], p.value=te$p.value)
+  }))
+  print(results)
 }
