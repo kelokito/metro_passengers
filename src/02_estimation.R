@@ -1,4 +1,3 @@
-# 02_estimation.R
 library(forecast)
 
 #--------------------------------------------------
@@ -22,7 +21,7 @@ model1 <- Arima(serie_log,
                 method = "ML")
 
 sink("../results/models/model1_summary.txt")
-cat("=== ESTIMATION: Model 1 - SARIMA(2,1,0)x(0,1,1)12 ===\n")
+cat("ESTIMATION: Model 1 - SARIMA(2,1,0)x(0,1,1)12\n")
 print(summary(model1))
 sink()
 
@@ -36,7 +35,7 @@ model2 <- Arima(serie_log,
                 method = "ML")
 
 sink("../results/models/model2_summary.txt")
-cat("=== ESTIMATION: Model 2 - SARIMA(0,1,1)x(0,1,1)12 ===\n")
+cat("ESTIMATION: Model 2 - SARIMA(0,1,1)x(0,1,1)12\n")
 print(summary(model2))
 sink()
 
@@ -44,7 +43,7 @@ sink()
 # 4. Preliminary Comparison (AIC/BIC)
 #--------------------------------------------------
 sink("../results/models/estimation_comparison.txt")
-cat("=== MODEL COMPARISON ===\n\n")
+cat("MODEL COMPARISON\n\n")
 cat("Model 1 (2,1,0)x(0,1,1)12 AIC:", model1$aic, "\n")
 cat("Model 1 (2,1,0)x(0,1,1)12 BIC:", model1$bic, "\n\n")
 cat("Model 2 (0,1,1)x(0,1,1)12 AIC:", model2$aic, "\n")

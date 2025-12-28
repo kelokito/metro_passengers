@@ -32,7 +32,7 @@ predict_and_evaluate <- function(model, name, train_log, obs) {
   
   # 4. Save metrics to text file
   sink(paste0("../results/models/prediction_accuracy_", name, ".txt"))
-  cat("=== PREDICTION ACCURACY (TEST SET 2019):", name, "===\n")
+  cat("PREDICTION ACCURACY (TEST SET 2019):", name, "\n")
   print(data.frame(RMSE=rmse, MAE=mae, RMSPE=rmspe, MAPE=mape, Mean_CI_Length=mean_ci_len))
   cat("\nMonthly Comparison:\n")
   print(ts(data.frame(LowLim=tl, Predic=pr, UpperLim=tu, Observ=obs, 
