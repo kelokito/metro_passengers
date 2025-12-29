@@ -1,6 +1,6 @@
-validation=function(model, model_name){
-  s=frequency(model$x)
-  resid=model$residuals
+validation <- function(model, model_name){
+  s <- frequency(model$x)
+  resid <- model$residuals
   
   # a) Save Residual Analysis (4-panel plot)
   png(paste0("../results/figures/validation_", model_name, "_residuals.png"), width=900, height=800)
@@ -50,11 +50,11 @@ validation=function(model, model_name){
   }
   
   # 2. Psi and phi weights
-  psis = ARMAtoMA(ar=model$model$phi, ma=model$model$theta, lag.max=12)
+  psis <- ARMAtoMA(ar=model$model$phi, ma=model$model$theta, lag.max=12)
   cat("\nPsi-weights (MA-infinity representation):\n")
   print(round(psis, 4))
 
-  pis=-ARMAtoMA(ar=-model$model$theta, ma=-model$model$phi, lag.max=12)
+  pis <- -ARMAtoMA(ar=-model$model$theta, ma=-model$model$phi, lag.max=12)
   cat("\nPi-weights (AR(inf))\n")
   print(pis[1:12])
    
@@ -68,13 +68,13 @@ validation=function(model, model_name){
   
   suppressMessages(require(lmtest, quietly=TRUE))
   cat("\nHomoscedasticity (Breusch-Pagan)\n")
-  obs=model$x
+  obs <- model$x
   print(bptest(resid ~ I(obs-resid)))
   
   cat("\nIndependence (Ljung-Box)\n")
-  lags_to_test = unique(c(1, 2, 3, s, 2*s))
-  results = t(apply(matrix(lags_to_test), 1, function(el) {
-  te = Box.test(resid, type="Ljung-Box", lag=el)
+  lags_to_test <- unique(c(1, 2, 3, s, 2*s))
+  results <- t(apply(matrix(lags_to_test), 1, function(el) {
+  te <- Box.test(resid, type="Ljung-Box", lag=el)
   c(lag=el, statistic=te$statistic[[1]], p.value=te$p.value)
   }))
   print(results)
